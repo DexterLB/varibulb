@@ -1,4 +1,4 @@
-update=Sat 06 Feb 2016 11:13:53 PM EET
+update=Sat 06 Feb 2016 11:41:40 PM EET
 version=1
 last_client=kicad
 [pcbnew]
@@ -59,3 +59,4 @@ LibName27=atmel
 LibName28=contrib
 LibName29=valves
 LibName30=sr086
+LibName31=rectifier-bridge
