@@ -1,0 +1,8 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP ENCODER
+D CODING SWITCH 4 Bits
+K SWITCH
+$ENDCMP
+#
+#End Doc Library

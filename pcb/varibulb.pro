@@ -1,4 +1,4 @@
-update=Sat 06 Feb 2016 11:41:40 PM EET
+update=Sun 07 Feb 2016 12:58:59 AM EET
 version=1
 last_client=kicad
 [pcbnew]
@@ -60,3 +60,5 @@ LibName28=contrib
 LibName29=valves
 LibName30=sr086
 LibName31=rectifier-bridge
+LibName32=encoder
+LibName33=crystal_s
