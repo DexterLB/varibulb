@@ -605,13 +605,7 @@ Wire Wire Line
 Wire Wire Line
 	5550 2000 5550 1900
 Wire Wire Line
-	3800 1350 4350 1350
-Wire Wire Line
-	4350 1350 5150 1350
-Wire Wire Line
-	5150 1350 5550 1350
-Wire Wire Line
-	5550 1350 5850 1350
+	3800 1350 5850 1350
 Wire Wire Line
 	5550 1350 5550 1400
 Wire Wire Line
@@ -636,28 +630,14 @@ Wire Wire Line
 Wire Wire Line
 	7550 3350 7550 3200
 Wire Wire Line
-	8100 2450 8100 2550
-Wire Wire Line
-	8100 2550 8100 2650
+	8100 2450 8100 2650
 Wire Wire Line
 	7450 2550 8100 2550
 Connection ~ 8100 2550
 Wire Wire Line
 	8100 3350 8100 3150
 Wire Wire Line
-	6250 1350 6500 1350
-Wire Wire Line
-	6500 1350 7000 1350
-Wire Wire Line
-	7000 1350 7300 1350
-Wire Wire Line
-	7300 1350 7600 1350
-Wire Wire Line
-	7600 1350 8100 1350
-Wire Wire Line
-	8100 1350 8350 1350
-Wire Wire Line
-	8350 1350 8500 1350
+	6250 1350 8500 1350
 Wire Wire Line
 	6500 2100 6500 2200
 Wire Wire Line
@@ -690,9 +670,7 @@ Connection ~ 8350 1350
 Wire Wire Line
 	9550 1950 9550 1900
 Wire Wire Line
-	9550 1250 9550 1350
-Wire Wire Line
-	9550 1350 9550 1500
+	9550 1250 9550 1500
 Wire Wire Line
 	9550 1350 9400 1350
 Wire Wire Line
@@ -703,9 +681,7 @@ Wire Wire Line
 Wire Wire Line
 	3800 6450 3800 6500
 Wire Wire Line
-	4350 1900 4350 1950
-Wire Wire Line
-	4350 1950 4350 2000
+	4350 1900 4350 2000
 Wire Wire Line
 	4350 2550 4350 2500
 Wire Wire Line
@@ -716,9 +692,7 @@ Wire Wire Line
 Wire Wire Line
 	4650 2050 4650 1950
 Wire Wire Line
-	4350 1950 4650 1950
-Wire Wire Line
-	4650 1950 4750 1950
+	4350 1950 4750 1950
 Connection ~ 4350 1950
 Connection ~ 4650 1950
 Wire Wire Line
@@ -758,13 +732,9 @@ Wire Wire Line
 Wire Wire Line
 	5150 4950 5200 4950
 Wire Wire Line
-	6150 4550 6150 4750
+	6150 4550 6150 4950
 Wire Wire Line
-	6150 4750 6150 4950
-Wire Wire Line
-	5750 4550 5750 4650
-Wire Wire Line
-	5750 4650 5750 4950
+	5750 4550 5750 4950
 $Comp
 L GND #PWR017
 U 1 1 56B6D801
@@ -842,9 +812,7 @@ F 3 "" H 1950 4650 30  0000 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	2200 4650 2350 4650
-Wire Wire Line
-	2350 4650 2450 4650
+	2200 4650 2450 4650
 $Comp
 L VCC #PWR022
 U 1 1 56B6EC93
@@ -938,9 +906,7 @@ F 3 "" H 7300 5600 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5150 5550 5550 5550
-Wire Wire Line
-	5550 5550 7100 5550
+	5150 5550 7100 5550
 Wire Wire Line
 	7100 5650 5150 5650
 Wire Wire Line
@@ -1047,17 +1013,13 @@ $EndComp
 Wire Wire Line
 	1650 6100 1650 5750
 Wire Wire Line
-	2050 5150 2050 5500
-Wire Wire Line
-	2050 5500 2050 5650
+	2050 5150 2050 5650
 Wire Wire Line
 	2050 5150 2450 5150
 Wire Wire Line
 	2450 4950 1250 4950
 Wire Wire Line
-	1250 4950 1250 5500
-Wire Wire Line
-	1250 5500 1250 5650
+	1250 4950 1250 5650
 Wire Wire Line
 	1350 5500 1250 5500
 Connection ~ 1250 5500
@@ -1100,23 +1062,15 @@ F 3 "" H 6550 5150 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	6550 4550 6550 4850
+	6550 4550 6550 4950
 Wire Wire Line
-	6550 4850 6550 4950
-Wire Wire Line
-	5150 4850 6550 4850
-Wire Wire Line
-	6550 4850 6650 4850
+	5150 4850 6650 4850
 Connection ~ 6550 4850
 Wire Wire Line
-	5150 4750 6150 4750
-Wire Wire Line
-	6150 4750 6650 4750
+	5150 4750 6650 4750
 Connection ~ 6150 4750
 Wire Wire Line
-	5150 4650 5750 4650
-Wire Wire Line
-	5750 4650 6650 4650
+	5150 4650 6650 4650
 Connection ~ 5750 4650
 $Comp
 L GND #PWR031
@@ -1161,9 +1115,7 @@ Wire Wire Line
 Wire Wire Line
 	1650 850  1800 850 
 Wire Wire Line
-	2300 850  2450 850 
-Wire Wire Line
-	2450 850  3350 850 
+	2300 850  3350 850 
 Wire Wire Line
 	3350 850  3350 900 
 Wire Wire Line
@@ -1172,9 +1124,7 @@ Connection ~ 2450 850
 Wire Wire Line
 	3350 1850 3350 1800
 Wire Wire Line
-	1650 1850 2450 1850
-Wire Wire Line
-	2450 1850 3350 1850
+	1650 1850 3350 1850
 Wire Wire Line
 	1650 1850 1650 1550
 Wire Wire Line
@@ -1182,14 +1132,6 @@ Wire Wire Line
 Connection ~ 2450 1850
 Text Notes 4150 1250 0    79   ~ 0
 >250V
-Wire Notes Line
-	6300 3600 6300 600 
-Wire Notes Line
-	6800 600  1300 600 
-Wire Notes Line
-	1300 600  1300 3600
-Wire Notes Line
-	1300 3600 6800 3600
 Wire Notes Line
 	8250 3400 8250 5650
 Wire Notes Line
@@ -1200,4 +1142,12 @@ Wire Notes Line
 	10850 3400 8250 3400
 Text Notes 1800 1400 0    79   ~ 0
 ~~230V
+Wire Notes Line
+	6300 3600 6300 650 
+Wire Notes Line
+	6300 650  1400 650 
+Wire Notes Line
+	1400 650  1400 3600
+Wire Notes Line
+	1400 3600 6300 3600
 $EndSCHEMATC
