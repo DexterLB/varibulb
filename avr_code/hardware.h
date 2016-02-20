@@ -1,6 +1,6 @@
 #pragma once
 
-#define F_CPU (14745600ull / 2)
+#define F_CPU 14745600ull
 
 #define BAUDRATE 115200
 
