@@ -9,7 +9,7 @@
 #include "bit_operations.h"
 #include "bool.h"
 
-#define microseconds(x) (((x) * F_CPU) / 1000000)
+#define microseconds(x) (((x) * F_CPU) / (1000000 * 64))
 
 static inline void external_interrupt_init() {
     MCUCR = (1<<ISC00); // any change on INT1 causes interrupt
@@ -17,8 +17,8 @@ static inline void external_interrupt_init() {
 }
 
 static inline void timer0_init() {
-    TCCR0B = (1<<CS00);      // divide clock by 1
-    TIMSK |= (1<<TOIE0);    // enable overflow interrupt
+    TCCR0B = (1<<CS00) | (1<<CS01);      // divide clock by 64
+    TIMSK |= (1<<TOIE0) | (1<<OCIE0A);    // enable overflow interrupt
 }
 
 static inline void timer1_init() {
@@ -43,7 +43,7 @@ static inline void init() {
 
     external_interrupt_init();
     timer0_init();
-    timer1_init();
+    // timer1_init();
     sei();
 }
 
@@ -74,11 +74,11 @@ ISR(TIMER0_OVF_vect) {
 }
 
 ISR(INT0_vect) {
-    TCNT1 = 65536 - microseconds(210);    // filter all short pulses
+    OCR0A = TCNT0 + microseconds(210);
     have_state_change = true;
 }
 
-ISR(TIMER1_OVF_vect) {
+ISR(TIMER0_COMPA_vect) {
     if (!have_state_change) {
         return;
     }
