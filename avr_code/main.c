@@ -22,8 +22,10 @@ static inline void timer0_init() {
 }
 
 static inline void timer1_init() {
-    TCCR1B = (1<<CS10);      // divide clock by 1
-    TIMSK |= (1<<TOIE1);    // enable overflow interrupt
+    TCCR1B = (1<<CS10) | (1 << CS11) | (1 << ICNC1) | (1 << ICES1);      // divide clock by 1
+    TIMSK |= (1<<ICIE1) | (1<<OCIE1A);    // enable overflow interrupt
+    ACSR = (1<<ACIC);
+    DIDR = (1<<AIN1D) | (1<<AIN0D);
 }
 
 static inline void timer_reset() {
@@ -36,14 +38,9 @@ static inline void init() {
 
     _delay_ms(500);
 
-    setbit(PORTB, 0);
-
-    uart_init();
-    uart_enable_interrupt();
-
     external_interrupt_init();
     timer0_init();
-    // timer1_init();
+    timer1_init();
     sei();
 }
 
@@ -53,8 +50,65 @@ static inline void soft_reset()
     for(;;);
 }
 
+uint8_t state = 0;
+uint16_t halfperiod_length;
+uint16_t last_transition;
+uint16_t transition_period;
+
+ISR(TIMER1_CAPT_vect) {
+    uint16_t transition_time = ICR1;
+    clearbit(PORTB, 3);
+
+    halfperiod_length = (transition_time - last_transition) >> 1;
+    last_transition = transition_time;
+
+    transition_period = halfperiod_length / 3;
+
+    OCR1A = last_transition + transition_period;
+    state = 1;
+}
+
+ISR(TIMER1_COMPA_vect) {
+    if (state == 0) {
+        return;
+    }
+    uint16_t pulse_end;
+    if (state == 1 || state == 2) {   // first halfperiod
+        uint16_t length = halfperiod_length * state;    // well, this is shit to explain.
+        pulse_end = length - microseconds(1700);
+        if (pulse_end > length) {
+            // do a small pulse because we don't have a time for a big one
+            // the triac won't like it, but it's the best we can do.
+            pulse_end = length - microseconds(200);
+            if (pulse_end > length) {
+                state = 0;  // too late to do a pulse, giving up.
+                return;
+            }
+        }
+        OCR1A = last_transition + pulse_end;
+        setbit(PORTB, 3);
+        if (state == 1) {
+            state = 3;
+        } else {
+            state = 4;
+        }
+        return;
+    }
+    if (state == 3) {   // end of trigger impulse
+        OCR1A = last_transition + halfperiod_length + transition_period;
+        state = 2;
+        clearbit(PORTB, 3);
+        return;
+    }
+    if (state == 4) {
+        clearbit(PORTB, 3);
+        state = 0;
+    }
+}
+
+
 void process_data(uint8_t data) {
-    uart_write_byte(data);
+    setbitval(PORTD, 1, bitclear(PORTD, 1))
 }
 
 uint16_t pulse_rough_length = microseconds(5000);
@@ -117,17 +171,6 @@ ISR(TIMER0_COMPA_vect) {
             process_data(data);
         }
     }
-}
-
-ISR(USART_RX_vect) {
-    char c = uart_read_byte();
-    if (c == 'q') {
-        uart_write_string("bye!\n");
-        soft_reset();
-    }
-    uart_write_string("you said: ");
-    uart_write_byte(c);
-    uart_write_newline();
 }
 
 int main()

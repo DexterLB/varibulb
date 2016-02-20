@@ -6,6 +6,6 @@
 
 // 1 - out, 0 - in   v bits v
 //                   76543210
-#define DDRB_STATE 0b00000001
+#define DDRB_STATE 0b00001000
 #define DDRC_STATE 0b00000000
 #define DDRD_STATE 0b00000010
