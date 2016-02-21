@@ -9,7 +9,7 @@
 #include "bit_operations.h"
 #include "bool.h"
 
-#define microseconds(x) (((x) * F_CPU) / (1000000 * 64))
+#define microseconds(x) (((x) * F_CPU) / (1000000 * 8))
 
 static inline void external_interrupt_init() {
     MCUCR = (1<<ISC00); // any change on INT1 causes interrupt
@@ -17,7 +17,7 @@ static inline void external_interrupt_init() {
 }
 
 static inline void timer0_init() {
-    TCCR0B = (1<<CS00) | (1<<CS01);      // divide clock by 64
+    TCCR0B = (1<<CS01);      // divide clock by 8
     TIMSK |= (1<<TOIE0) | (1<<OCIE0A);    // enable overflow interrupt
 }
 
@@ -25,8 +25,8 @@ static inline void timer1_init() {
     // enable OC1A pin
     TCCR1A = (1<<COM1A1);
 
-    // divide clock by 64, enable input noise canceller, capture on 0->1
-    TCCR1B = (1<<CS10) | (1 << CS11) | (1 << ICNC1) | (1 << ICES1);
+    // divide clock by 8, enable input noise canceller, capture on 0->1
+    TCCR1B = (1 << CS11) | (1 << ICNC1) | (1 << ICES1);
 
     // enable compare interrupt
     TIMSK |= (1<<ICIE1) | (1<<OCIE1A);
@@ -70,10 +70,11 @@ uint8_t state = 0;
 uint16_t last_transition;
 uint16_t times[4];
 
+uint16_t period_length;
 ISR(TIMER1_CAPT_vect) {
     uint16_t transition_time = ICR1;
 
-    uint16_t period_length = transition_time - last_transition;
+    period_length = transition_time - last_transition;
     if (period_length < microseconds(15000)) {  // (1/50Hz) * (2/3)
         // this is a bogus transition - maybe noise or jitter from the triac
         // turning on
