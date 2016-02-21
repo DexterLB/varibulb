@@ -60,11 +60,15 @@ static inline void soft_reset()
     for(;;);
 }
 
+#define min_weakness 1500
+
+uint16_t weakness = 65535;
+uint16_t target_weakness = 65535;
+uint16_t fade_speed = 65535;
+
 uint8_t state = 0;
 uint16_t last_transition;
 uint16_t times[4];
-
-uint16_t weakness = 63000;
 
 ISR(TIMER1_CAPT_vect) {
     uint16_t transition_time = ICR1;
@@ -78,11 +82,26 @@ ISR(TIMER1_CAPT_vect) {
 
     last_transition = transition_time;
 
+    if (weakness < target_weakness) {
+        if (target_weakness - weakness < fade_speed) {
+            weakness = target_weakness;
+        } else {
+            weakness += fade_speed;
+        }
+    }
+    if (weakness > target_weakness) {
+        if (weakness - target_weakness < fade_speed) {
+            weakness = target_weakness;
+        } else {
+            weakness -= fade_speed;
+        }
+    }
+
     uint16_t transition_period = ((uint32_t)weakness * period_length) >> 17;
     // 17 because we divide by 2^16 to normalize weakness (0-65536)
     // and then divide by 2 to get the halfperiod length
     
-    if ((period_length >> 1) - transition_period < microseconds(200)) {
+    if ((period_length >> 1) - transition_period < microseconds(500)) {
         state = 4;  // off
         return;
     }
@@ -120,6 +139,25 @@ ISR(TIMER1_COMPA_vect) {
     setbitval(TCCR1A, COM1A0, !(state & 1))
 }
 
+void update_weakness(uint16_t new_target) {
+    if (new_target > min_weakness) {
+        target_weakness = new_target;
+    } else {
+        target_weakness = min_weakness;
+    }
+}
+
+void offset_weakness(int16_t offset) {
+    if (offset > 0 && target_weakness + offset < target_weakness) {
+        target_weakness = 65535;
+        return;
+    }
+    if (offset < 0 && target_weakness + offset > target_weakness) {
+        target_weakness = min_weakness;
+        return;
+    }
+    update_weakness(target_weakness + offset);
+}
 
 void process_data(uint8_t data) {
     setbitval(PORTD, 1, bitclear(PORTD, 1))
@@ -187,48 +225,47 @@ ISR(TIMER0_COMPA_vect) {
     }
 }
 
-uint8_t mask = 0;
-    uint8_t this_encoder;
-    uint8_t encoder = 0;
-
 int main()
 {
     init();
+    uint8_t encoder = 0;
     for (;;) {
-        mask = ((mask << 2) | ((PIND >> 4) & 0b11)) & 0b1111;
+        encoder = ((encoder << 2) | ((PIND >> 4) & 0b11)) & 0b1111;
 
         // bits 0 and 1 are the current state of the encoder
         // bits 2 and 3 are the previous state of the encoder
         /*  correct encoder table
-        switch(mask) {
+        switch(encoder) {
             case 0b0001:
             case 0b0111:
             case 0b1110:
             case 0b1000:
-                weakness += 1000;
+                target_weakness += 1000;
                 break;
             case 0b1011:
             case 0b1101:
             case 0b0100:
             case 0b0010:
-                weakness -= 1000;
+                target_weakness -= 1000;
                 break;
         }
         */
         /* incorrect proteus encoder table
             */
-        switch(mask) {
+        switch(encoder) {
             case 0b1000:
             case 0b0001:
             case 0b0111:
             case 0b1110:
-                target_weakness += 1000;
+                fade_speed = 1000;
+                offset_weakness(1000);
                 break;
             case 0b0100:
             case 0b0010:
             case 0b1011:
             case 0b1101:
-                target_weakness -= 1000;
+                fade_speed = 1000;
+                offset_weakness(-1000);
                 break;
         }
         /**/
