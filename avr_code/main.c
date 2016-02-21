@@ -187,10 +187,51 @@ ISR(TIMER0_COMPA_vect) {
     }
 }
 
+uint8_t mask = 0;
+    uint8_t this_encoder;
+    uint8_t encoder = 0;
+
 int main()
 {
     init();
     for (;;) {
+        mask = ((mask << 2) | ((PIND >> 4) & 0b11)) & 0b1111;
+
+        // bits 0 and 1 are the current state of the encoder
+        // bits 2 and 3 are the previous state of the encoder
+        /*  correct encoder table
+        switch(mask) {
+            case 0b0001:
+            case 0b0111:
+            case 0b1110:
+            case 0b1000:
+                weakness += 1000;
+                break;
+            case 0b1011:
+            case 0b1101:
+            case 0b0100:
+            case 0b0010:
+                weakness -= 1000;
+                break;
+        }
+        */
+        /* incorrect proteus encoder table
+            */
+        switch(mask) {
+            case 0b1000:
+            case 0b0001:
+            case 0b0111:
+            case 0b1110:
+                target_weakness += 1000;
+                break;
+            case 0b0100:
+            case 0b0010:
+            case 0b1011:
+            case 0b1101:
+                target_weakness -= 1000;
+                break;
+        }
+        /**/
     }
     return 0;
 }
