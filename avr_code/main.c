@@ -22,9 +22,19 @@ static inline void timer0_init() {
 }
 
 static inline void timer1_init() {
-    TCCR1B = (1<<CS10) | (1 << CS11) | (1 << ICNC1) | (1 << ICES1);      // divide clock by 1
-    TIMSK |= (1<<ICIE1) | (1<<OCIE1A);    // enable overflow interrupt
+    // enable OC1A pin
+    TCCR1A = (1<<COM1A1);
+
+    // divide clock by 64, enable input noise canceller, capture on 0->1
+    TCCR1B = (1<<CS10) | (1 << CS11) | (1 << ICNC1) | (1 << ICES1);
+
+    // enable compare interrupt
+    TIMSK |= (1<<ICIE1) | (1<<OCIE1A);
+
+    // start the comparator and use it as capture source for the timer
     ACSR = (1<<ACIC);
+
+    // disable digital buffers on the comparator pins
     DIDR = (1<<AIN1D) | (1<<AIN0D);
 }
 
@@ -57,7 +67,6 @@ uint16_t transition_period;
 
 ISR(TIMER1_CAPT_vect) {
     uint16_t transition_time = ICR1;
-    clearbit(PORTB, 3);
 
     halfperiod_length = (transition_time - last_transition) >> 1;
     last_transition = transition_time;
@@ -65,6 +74,10 @@ ISR(TIMER1_CAPT_vect) {
     transition_period = halfperiod_length / 3;
 
     OCR1A = last_transition + transition_period;
+
+    // output will be set on next state entry
+    setbit(TCCR1A, COM1A0);
+
     state = 1;
 }
 
@@ -86,23 +99,23 @@ ISR(TIMER1_COMPA_vect) {
             }
         }
         OCR1A = last_transition + pulse_end;
-        setbit(PORTB, 3);
+
+        
+        clearbit(TCCR1A, COM1A0);   // output will be cleared on next state entry
+
         if (state == 1) {
             state = 3;
         } else {
-            state = 4;
+            state = 0;
         }
         return;
     }
     if (state == 3) {   // end of trigger impulse
         OCR1A = last_transition + halfperiod_length + transition_period;
         state = 2;
-        clearbit(PORTB, 3);
+        // output will be set on next state entry
+        setbit(TCCR1A, COM1A0);
         return;
-    }
-    if (state == 4) {
-        clearbit(PORTB, 3);
-        state = 0;
     }
 }
 
