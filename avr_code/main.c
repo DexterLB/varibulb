@@ -61,62 +61,63 @@ static inline void soft_reset()
 }
 
 uint8_t state = 0;
-uint16_t halfperiod_length;
 uint16_t last_transition;
-uint16_t transition_period;
+uint16_t times[4];
+
+uint16_t weakness = 63000;
 
 ISR(TIMER1_CAPT_vect) {
     uint16_t transition_time = ICR1;
 
-    halfperiod_length = (transition_time - last_transition) >> 1;
+    uint16_t period_length = transition_time - last_transition;
+    if (period_length < microseconds(15000)) {  // (1/50Hz) * (2/3)
+        // this is a bogus transition - maybe noise or jitter from the triac
+        // turning on
+        return;
+    }
+
     last_transition = transition_time;
 
-    transition_period = halfperiod_length / 3;
+    uint16_t transition_period = ((uint32_t)weakness * period_length) >> 17;
+    // 17 because we divide by 2^16 to normalize weakness (0-65536)
+    // and then divide by 2 to get the halfperiod length
+    
+    if ((period_length >> 1) - transition_period < microseconds(200)) {
+        state = 4;  // off
+        return;
+    }
 
-    OCR1A = last_transition + transition_period;
+    // start a pulse after transition_period
+    times[0] = last_transition + transition_period;
 
-    // output will be set on next state entry
+    // end the pulse after 100us
+    times[1] = times[0] + microseconds(100);
+
+    // start another pulse a halfperiod after the first one
+    times[2] = times[0] + (period_length >> 1);   // halfperiod length
+
+    // end the second pulse after 100us
+    times[3] = times[2] + microseconds(100);
+
+    OCR1A = times[0];
+
+    // output will be set on next state entry (for the first pulse)
     setbit(TCCR1A, COM1A0);
 
-    state = 1;
+    state = 0;
 }
 
 ISR(TIMER1_COMPA_vect) {
-    if (state == 0) {
+    state++;
+    if (state > 3) {
         return;
     }
-    uint16_t pulse_end;
-    if (state == 1 || state == 2) {   // first halfperiod
-        uint16_t length = halfperiod_length * state;    // well, this is shit to explain.
-        pulse_end = transition_period + (state - 1) * halfperiod_length + microseconds(100);
-        if (pulse_end > length) {
-            // do a small pulse because we don't have a time for a big one
-            // the triac won't like it, but it's the best we can do.
-            pulse_end = transition_period + microseconds(50);
-            if (pulse_end > length) {
-                state = 0;  // too late to do a pulse, giving up.
-                return;
-            }
-        }
-        OCR1A = last_transition + pulse_end;
+    OCR1A = times[state];
 
-        
-        clearbit(TCCR1A, COM1A0);   // output will be cleared on next state entry
-
-        if (state == 1) {
-            state = 3;
-        } else {
-            state = 0;
-        }
-        return;
-    }
-    if (state == 3) {   // end of trigger impulse
-        OCR1A = last_transition + halfperiod_length + transition_period;
-        state = 2;
-        // output will be set on next state entry
-        setbit(TCCR1A, COM1A0);
-        return;
-    }
+    // at even states we start a pulse, at odd states we end the pulse
+    // therefore at even states we make the next match end the pulse (go low)
+    // and at odd states we make the next match start a pulse (go high)
+    setbitval(TCCR1A, COM1A0, !(state & 1))
 }
 
 
