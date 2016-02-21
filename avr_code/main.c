@@ -229,7 +229,24 @@ int main()
 {
     init();
     uint8_t encoder = 0;
+    bool button_was_pressed = false; 
+    uint16_t saved_weakness = 0;
+
     for (;;) {
+        if (bitset(PIND, 6)) {
+            button_was_pressed = true;
+        } else if (button_was_pressed) {
+            button_was_pressed = false;
+            fade_speed = 3000;
+            if (target_weakness == 65535) {
+                update_weakness(saved_weakness);
+            } else {
+                saved_weakness = target_weakness;
+                update_weakness(65535);
+            }
+        }
+
+
         encoder = ((encoder << 2) | ((PIND >> 4) & 0b11)) & 0b1111;
 
         // bits 0 and 1 are the current state of the encoder
@@ -240,13 +257,15 @@ int main()
             case 0b0111:
             case 0b1110:
             case 0b1000:
-                target_weakness += 1000;
+                fade_speed = 1000;
+                offset_weakness(1000);
                 break;
             case 0b1011:
             case 0b1101:
             case 0b0100:
             case 0b0010:
-                target_weakness -= 1000;
+                fade_speed = 1000;
+                offset_weakness(-1000);
                 break;
         }
         */
