@@ -88,11 +88,11 @@ ISR(TIMER1_COMPA_vect) {
     uint16_t pulse_end;
     if (state == 1 || state == 2) {   // first halfperiod
         uint16_t length = halfperiod_length * state;    // well, this is shit to explain.
-        pulse_end = length - microseconds(1700);
+        pulse_end = transition_period + (state - 1) * halfperiod_length + microseconds(100);
         if (pulse_end > length) {
             // do a small pulse because we don't have a time for a big one
             // the triac won't like it, but it's the best we can do.
-            pulse_end = length - microseconds(200);
+            pulse_end = transition_period + microseconds(50);
             if (pulse_end > length) {
                 state = 0;  // too late to do a pulse, giving up.
                 return;
