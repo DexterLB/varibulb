@@ -923,11 +923,7 @@ Wire Wire Line
 Wire Wire Line
 	7550 4750 9850 4750
 Connection ~ 9800 4750
-Wire Wire Line
-	7550 4650 9850 4650
 Connection ~ 9400 4650
-Wire Wire Line
-	7550 4550 9850 4550
 Connection ~ 9000 4550
 Wire Wire Line
 	9800 5300 9800 5250
@@ -1146,4 +1142,16 @@ F 3 "" H 6900 1000 60  0000 C CNN
 	1    6900 1000
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	8550 4550 9850 4550
+Wire Wire Line
+	8550 4550 8450 4650
+Wire Wire Line
+	8450 4650 7550 4650
+Wire Wire Line
+	8550 4650 9850 4650
+Wire Wire Line
+	8550 4650 8450 4550
+Wire Wire Line
+	8450 4550 7550 4550
 $EndSCHEMATC
