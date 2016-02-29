@@ -8,6 +8,7 @@
 #include "simple_uart.h"
 #include "bit_operations.h"
 #include "bool.h"
+#include "checksum.h"
 
 #define microseconds(x) (((x) * F_CPU) / (1000000 * 8))
 
@@ -66,6 +67,7 @@ static inline void soft_reset()
 
 uint16_t weakness = 65535;
 uint16_t target_weakness = 65535;
+uint16_t saved_weakness = 0;
 uint16_t fade_speed = 65535;
 
 uint8_t state = 0;
@@ -150,20 +152,83 @@ void update_weakness(uint16_t new_target) {
     }
 }
 
-void offset_weakness(int16_t offset) {
-    if (offset > 0 && target_weakness + offset < target_weakness) {
+void increase_weakness(uint16_t offset) {
+    if (target_weakness + offset < target_weakness) {
         target_weakness = 65535;
-        return;
-    }
-    if (offset < 0 && target_weakness + offset > target_weakness) {
-        target_weakness = min_weakness;
         return;
     }
     update_weakness(target_weakness + offset);
 }
 
+void decrease_weakness(uint16_t offset) {
+    if (target_weakness - offset > target_weakness) {
+        target_weakness = min_weakness;
+        return;
+    }
+    update_weakness(target_weakness - offset);
+}
+
+static inline void turn_off() {
+    if (target_weakness != 65535) {
+        saved_weakness = target_weakness;
+        update_weakness(65535);
+    }
+}
+
+static inline void turn_on() {
+    target_weakness = saved_weakness;
+}
+
+void toggle() {
+    if (target_weakness == 65535) {
+        update_weakness(saved_weakness);
+    } else {
+        saved_weakness = target_weakness;
+        update_weakness(65535);
+    }
+}
+
+uint8_t received_data[9];
 void process_data(uint8_t data) {
-    setbitval(PORTD, 1, bitclear(PORTD, 1))
+    // The following is very stupid. TODO: make it more optimal.
+    for (uint8_t i = 0; i < sizeof(received_data) - 1; i++) {
+        received_data[i] = received_data[i + 1];
+    }
+    received_data[sizeof(received_data) - 1] = data;
+
+    // the device address: determined by fair d20 roll
+    if (received_data[0] != 42 || received_data[1] != 15) {
+        return;
+    }
+
+    if (!fletcher16_check(received_data, sizeof(received_data))) {
+        return;
+    }
+    
+    uint16_t weakness_value = received_data[4] | ((uint16_t)received_data[3] << 8);
+    uint16_t fade_speed_value = received_data[6] | ((uint16_t)received_data[5] << 8);
+
+    fade_speed = fade_speed_value;
+    switch(received_data[2]) {
+        case 0:
+            turn_off();
+            break;
+        case 1:
+            turn_on();
+            break;
+        case 2:
+            toggle();
+            break;
+        case 3:
+            increase_weakness(weakness_value);
+            break;
+        case 4:
+            decrease_weakness(weakness_value);
+            break;
+        case 5:
+            update_weakness(weakness_value);
+            break;
+    }
 }
 
 uint16_t pulse_rough_length = microseconds(5000);
@@ -233,7 +298,6 @@ int main()
     init();
     uint8_t encoder = 0;
     bool button_was_pressed = false; 
-    uint16_t saved_weakness = 0;
 
     for (;;) {
         if (bitset(PIND, 6)) {
@@ -241,12 +305,7 @@ int main()
         } else if (button_was_pressed) {
             button_was_pressed = false;
             fade_speed = 3000;
-            if (target_weakness == 65535) {
-                update_weakness(saved_weakness);
-            } else {
-                saved_weakness = target_weakness;
-                update_weakness(65535);
-            }
+            toggle();
         }
 
 
@@ -261,14 +320,14 @@ int main()
             case 0b1110:
             case 0b1000:
                 fade_speed = 1000;
-                offset_weakness(1000);
+                increase_weakness(1000);
                 break;
             case 0b1011:
             case 0b1101:
             case 0b0100:
             case 0b0010:
                 fade_speed = 1000;
-                offset_weakness(-1000);
+                decrease_weakness(1000);
                 break;
         }
         */
@@ -280,14 +339,14 @@ int main()
             case 0b0111:
             case 0b1110:
                 fade_speed = 1000;
-                offset_weakness(1000);
+                increase_weakness(1000);
                 break;
             case 0b0100:
             case 0b0010:
             case 0b1011:
             case 0b1101:
                 fade_speed = 1000;
-                offset_weakness(-1000);
+                decrease_weakness(1000);
                 break;
         }
         /**/
