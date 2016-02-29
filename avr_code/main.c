@@ -45,6 +45,8 @@ static inline void timer_reset() {
 static inline void init() {
     DDRB = DDRB_STATE;
     DDRD = DDRD_STATE;
+    PORTB = PORTB_STATE;
+    PORTD = PORTD_STATE;
 
     _delay_ms(500);
 
