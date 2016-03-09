@@ -1,4 +1,4 @@
-update=Sun 07 Feb 2016 12:58:59 AM EET
+update=Wed 09 Mar 2016 11:16:11 AM EET
 version=1
 last_client=kicad
 [pcbnew]
@@ -62,3 +62,14 @@ LibName30=sr086
 LibName31=rectifier-bridge
 LibName32=encoder
 LibName33=crystal_s
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
+ERC_TestSimilarLabels=1
